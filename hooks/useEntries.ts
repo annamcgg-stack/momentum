@@ -156,11 +156,19 @@ export function useEntries() {
     // Persist to DB (RLS ensures users can only write their own rows).
       const payload = dailyEntryToDbPayload(next, userId, date);
 
-      const { error } = await supabase
+      console.log("SAVE START", { date, entry: next, payload });
+
+      const { data, error } = await supabase
         .from("daily_entries")
-        .upsert(payload, { onConflict: "user_id,date" });
+        .upsert(payload, { onConflict: "user_id,date" })
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("SAVE ERROR", error);
+        throw error;
+      }
+      
+      console.log("SAVE SUCCESS", data);
       
       setMap((m) => ({ ...m, [date]: next }));
       

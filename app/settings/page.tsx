@@ -11,6 +11,7 @@ import { ToggleRow } from "@/components/ui/ToggleRow";
 import { Field } from "@/components/ui/Field";
 import { useSupabaseUser } from "@/hooks/useSupabaseUser";
 import { useReminderPreferences } from "@/hooks/useReminderPreferences";
+import { useUserProfilePreferences } from "@/hooks/useUserProfilePreferences";
 import {
   browserReminderChannel,
   getToneDescription,
@@ -24,6 +25,11 @@ export default function SettingsPage() {
   const { user } = useSupabaseUser();
   const userId = user?.id ?? null;
   const { prefs, ready, save, detectTimeZone } = useReminderPreferences(userId);
+  const {
+    prefs: profilePrefs,
+    ready: profileReady,
+    save: saveProfile,
+  } = useUserProfilePreferences(userId);
 
   const [draft, setDraft] = useState({
     remindersEnabled: false,
@@ -31,6 +37,9 @@ export default function SettingsPage() {
     reminderFrequency: "daily" as ReminderFrequency,
     reminderTone: "gentle" as ReminderTone,
     timezone: "UTC",
+    cycleTrackingEnabled: false,
+    weightTrackingEnabled: false,
+    waterUnit: "oz" as "ml" | "oz",
   });
 
   const [saving, setSaving] = useState(false);
@@ -40,16 +49,21 @@ export default function SettingsPage() {
   const [permHint, setPermHint] = useState<string | null>(null);
 
   useEffect(() => {
-    if (prefs) {
-      setDraft({
-        remindersEnabled: prefs.remindersEnabled,
-        reminderTime: prefs.reminderTime,
-        reminderFrequency: prefs.reminderFrequency,
-        reminderTone: prefs.reminderTone,
-        timezone: prefs.timezone,
-      });
-    }
-  }, [prefs]);
+    if (!prefs) return;
+    setDraft((d) => ({
+      ...d,
+      remindersEnabled: prefs.remindersEnabled,
+      reminderTime: prefs.reminderTime,
+      reminderFrequency: prefs.reminderFrequency,
+      reminderTone: prefs.reminderTone,
+      timezone: prefs.timezone,
+        cycleTrackingEnabled:
+          profilePrefs?.cycleTrackingEnabled ?? d.cycleTrackingEnabled,
+        weightTrackingEnabled:
+          profilePrefs?.weightTrackingEnabled ?? d.weightTrackingEnabled,
+        waterUnit: profilePrefs?.waterUnit ?? d.waterUnit,
+    }));
+  }, [prefs, profilePrefs]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,16 +89,30 @@ export default function SettingsPage() {
         }
       }
 
-      const result = await save({
-        remindersEnabled: draft.remindersEnabled,
-        reminderTime: draft.reminderTime,
-        reminderFrequency: draft.reminderFrequency,
-        reminderTone: draft.reminderTone,
-        timezone: draft.timezone,
-      });
+      const [result, profileResult] = await Promise.all([
+        save({
+          remindersEnabled: draft.remindersEnabled,
+          reminderTime: draft.reminderTime,
+          reminderFrequency: draft.reminderFrequency,
+          reminderTone: draft.reminderTone,
+          timezone: draft.timezone,
+        }),
+        saveProfile({
+          cycleTrackingEnabled: draft.cycleTrackingEnabled,
+          weightTrackingEnabled: draft.weightTrackingEnabled,
+          waterUnit: draft.waterUnit,
+        }),
+      ]);
 
       if (!result.ok) {
-        setBanner({ kind: "error", text: result.error ?? "Could not save settings." });
+        setBanner({ kind: "error", text: result.error ?? "Could not save reminders." });
+        return;
+      }
+      if (!profileResult.ok) {
+        setBanner({
+          kind: "error",
+          text: profileResult.error ?? "Could not save profile settings.",
+        });
         return;
       }
 
@@ -98,7 +126,9 @@ export default function SettingsPage() {
       } else {
         setBanner({
           kind: "success",
-          text: "Preferences saved. Daily reminders are off.",
+          text: draft.cycleTrackingEnabled
+            ? "Preferences saved. Reminders are off, but cycle tracking is enabled."
+            : "Preferences saved. Reminders are off, and cycle tracking is disabled.",
         });
       }
     } finally {
@@ -106,7 +136,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (!ready) {
+  if (!ready || !profileReady) {
     return (
       <div className="py-12 text-center text-sm text-ink-muted">Loading settings…</div>
     );
@@ -122,11 +152,11 @@ export default function SettingsPage() {
           ← Back to Today
         </Link>
         <h1 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink">
-          Reminders
+          Preferences
         </h1>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-muted">
-          Optional daily nudges to complete your check-in. You control the time, tone, and on/off
-          switch — we’ll layer in email and push later without changing this screen.
+          Optional daily nudges to complete your check-in, plus cycle tracking you can toggle on/off.
+          You control the time and tone — we’ll layer in email and push later without changing this screen.
         </p>
       </div>
 
@@ -208,6 +238,58 @@ export default function SettingsPage() {
                   Use this device
                 </button>
               </div>
+            </Field>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="font-display text-lg text-ink">Cycle tracking</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            If you enable cycle tracking, the cycle phase field will appear in your daily check-in.
+            You can change this anytime in Settings.
+          </p>
+          <div className="mt-5 space-y-5">
+            <ToggleRow
+              checked={draft.cycleTrackingEnabled}
+              onChange={(cycleTrackingEnabled) =>
+                setDraft((d) => ({ ...d, cycleTrackingEnabled }))
+              }
+              title="Enable cycle tracking"
+              subtitle="Hide cycle fields completely when off."
+            />
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="font-display text-lg text-ink">Weight & hydration</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Keep the daily experience performance-first. Weight is optional, and water input uses
+            your unit preference.
+          </p>
+          <div className="mt-5 space-y-5">
+            <ToggleRow
+              checked={draft.weightTrackingEnabled}
+              onChange={(weightTrackingEnabled) =>
+                setDraft((d) => ({ ...d, weightTrackingEnabled }))
+              }
+              title="Enable weight tracking"
+              subtitle="Optional. We’ll show a simple weight input + trends."
+            />
+
+            <Field label="Preferred water unit" hint="Used in the daily check-in input only.">
+              <select
+                className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink focus:border-accent outline-none"
+                value={draft.waterUnit}
+                onChange={(e) =>
+                  setDraft((d) => ({
+                    ...d,
+                    waterUnit: e.target.value as "ml" | "oz",
+                  }))
+                }
+              >
+                <option value="oz">oz</option>
+                <option value="ml">ml</option>
+              </select>
             </Field>
           </div>
         </Card>

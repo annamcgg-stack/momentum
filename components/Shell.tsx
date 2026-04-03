@@ -17,7 +17,7 @@ const nav = [
   { href: "/", label: "Today" },
   { href: "/progress", label: "Progress" },
   { href: "/history", label: "History" },
-  { href: "/settings", label: "Reminders" },
+  { href: "/settings", label: "Preferences" },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {

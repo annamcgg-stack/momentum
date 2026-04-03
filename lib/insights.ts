@@ -125,6 +125,20 @@ export function generateInsights(map: EntriesMap, days = CONSIDER_LAST_DAYS): In
     }
   }
 
+  const stressNums = weekEntries
+    .map((e) => e.stressLevel)
+    .filter((v): v is number => v != null && v >= 1);
+  if (stressNums.length >= 3) {
+    const st = avg(stressNums);
+    if (st != null && st >= 3.8) {
+      insights.push({
+        id: "stress-high",
+        text: "Your stress ratings have been running higher this week. A calmer recovery focus could pay off soon.",
+        tone: "gentle",
+      });
+    }
+  }
+
   if (insights.length === 0) {
     insights.push({
       id: "keep-going",

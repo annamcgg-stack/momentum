@@ -21,10 +21,13 @@ export interface DailyEntry {
   /** 1–5, separate from mood (premium insights: sleep vs energy, etc.). */
   energy: number | null;
   /**
-   * User-chosen unit (oz, ml, etc.) — keep consistent in UX copy.
-   * DB column `water_intake`; legacy `water_oz` is read-only fallback in mapper.
+   * Standardized hydration value in milliliters.
+   * The UI converts this to/from the user’s preferred unit (ml or oz).
+   * DB: `water_intake_ml` (preferred), plus backward-compat fallback.
    */
   waterIntake: number | null;
+  /** Optional body weight (kg). Stored only when users enable weight tracking. */
+  weightKg: number | null;
   notes: string;
   /**
    * Progress photo URL for display (signed URL from Supabase storage).

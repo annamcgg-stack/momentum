@@ -7,6 +7,8 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { useEntries } from "@/hooks/useEntries";
+import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { useUserProfilePreferences } from "@/hooks/useUserProfilePreferences";
 import {
   completionFraction,
   formatDateKey,
@@ -27,19 +29,23 @@ function monthGrid(year: number, month: number) {
   return cells;
 }
 
-function entrySummary(e: DailyEntry): string {
+function entrySummary(e: DailyEntry, showWeight: boolean): string {
   const parts: string[] = [];
   if (e.restDay) parts.push("Rest day");
   if (e.workoutCompleted) parts.push(e.workoutType ? e.workoutType : "Workout");
   if (e.sleepHours != null) parts.push(`${e.sleepHours}h sleep`);
   if (e.mood != null) parts.push(`mood ${e.mood}/5`);
   if (e.energy != null) parts.push(`energy ${e.energy}/5`);
+  if (showWeight && e.weightKg != null) parts.push(`weight ${e.weightKg.toFixed(1)}kg`);
   if (parts.length === 0) return "Light check-in";
   return parts.join(" · ");
 }
 
 export default function HistoryPage() {
   const { map, ready } = useEntries();
+  const { user } = useSupabaseUser();
+  const { prefs: profilePrefs, ready: profileReady } = useUserProfilePreferences(user?.id ?? null);
+  const weightEnabled = profileReady && Boolean(profilePrefs?.weightTrackingEnabled);
   const now = new Date();
   const [cursor, setCursor] = useState(() => ({
     y: now.getFullYear(),
@@ -187,7 +193,11 @@ export default function HistoryPage() {
                         title: `Progress photo — ${photoTitle}`,
                       })
                     }
-                    title={e ? `${entrySummary(e)}. Tap to view photo.` : "Tap to view photo"}
+                    title={
+                      e
+                        ? `${entrySummary(e, weightEnabled)}. Tap to view photo.`
+                        : "Tap to view photo"
+                    }
                     className={`flex aspect-square w-full flex-col items-center justify-center rounded-xl text-xs ${
                       logged
                         ? "bg-sage-soft/70 font-semibold text-ink"
@@ -201,7 +211,7 @@ export default function HistoryPage() {
                   </button>
                 ) : (
                   <div
-                    title={e ? entrySummary(e) : "No log"}
+                    title={e ? entrySummary(e, weightEnabled) : "No log"}
                     className={`flex aspect-square flex-col items-center justify-center rounded-xl text-xs ${
                       logged
                         ? "bg-sage-soft/70 font-semibold text-ink"
@@ -293,7 +303,9 @@ export default function HistoryPage() {
                       {Math.round(completionFraction(e) * 100)}% complete
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-ink-muted">{entrySummary(e)}</p>
+                  <p className="mt-1 text-sm text-ink-muted">
+                    {entrySummary(e, weightEnabled)}
+                  </p>
                   {e.workoutIntensity ? (
                     <p className="mt-1 text-xs text-ink-faint">
                       Intensity: {workoutIntensityLabel(e.workoutIntensity)}

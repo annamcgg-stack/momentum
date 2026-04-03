@@ -18,6 +18,7 @@ import { Field } from "@/components/ui/Field";
 import { ProgressPhotoUploader } from "@/components/ProgressPhotoUploader";
 import { ProgressPhotoModal } from "@/components/ProgressPhotoModal";
 import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { useUserProfilePreferences } from "@/hooks/useUserProfilePreferences";
 import { getSupabaseClient } from "@/lib/supabase/browserClient";
 
 const WORKOUT_TYPES = ["Strength", "Run", "Walk", "Yoga", "Sport", "Other"];
@@ -34,6 +35,18 @@ export function DailyCheckIn({
   const [draft, setDraft] = useState<DailyEntry>(() => initial ?? emptyEntry(date));
   const [showPhoto, setShowPhoto] = useState(false);
   const { user } = useSupabaseUser();
+  const userId = user?.id ?? null;
+  const { prefs: profilePrefs, ready: profileReady } = useUserProfilePreferences(userId);
+  const showCyclePhaseField = profileReady && Boolean(profilePrefs?.cycleTrackingEnabled);
+  const showWeightField = profileReady && Boolean(profilePrefs?.weightTrackingEnabled);
+  const waterUnit = profilePrefs?.waterUnit ?? "oz";
+  const ML_PER_OZ = 29.5735;
+  const waterDisplayValue =
+    draft.waterIntake == null
+      ? ""
+      : waterUnit === "ml"
+        ? draft.waterIntake
+        : draft.waterIntake / ML_PER_OZ;
 
   useEffect(() => {
     setDraft(initial ?? emptyEntry(date));
@@ -116,46 +129,6 @@ export function DailyCheckIn({
       </div>
 
       <Card>
-        <h2 className="mb-4 font-display text-lg text-ink">Movement</h2>
-        <div className="space-y-4">
-          <ToggleRow
-            checked={draft.workoutCompleted}
-            onChange={(workoutCompleted) => patch({ workoutCompleted })}
-            title="Workout completed"
-            subtitle="Tick when you trained — rest days count too when you honour recovery."
-          />
-
-          <Field label="Workout type (optional)" hint="Pick a preset or write your own.">
-            <input
-              type="text"
-              list="workout-presets"
-              className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent outline-none"
-              placeholder="Strength, run, yoga…"
-              value={draft.workoutType}
-              onChange={(e) => patch({ workoutType: e.target.value })}
-            />
-            <datalist id="workout-presets">
-              {WORKOUT_TYPES.map((t) => (
-                <option key={t} value={t} />
-              ))}
-            </datalist>
-          </Field>
-
-          <IntensityPills
-            value={draft.workoutIntensity}
-            onChange={(workoutIntensity) => patch({ workoutIntensity })}
-          />
-
-          <ToggleRow
-            checked={draft.restDay}
-            onChange={(restDay) => patch({ restDay })}
-            title="Rest / recovery day"
-            subtitle="Mark when you’re intentionally off training — helps future recovery insights."
-          />
-        </div>
-      </Card>
-
-      <Card>
         <h2 className="mb-4 font-display text-lg text-ink">Sleep & recovery</h2>
         <div className="space-y-5">
           <Field label="Sleep (hours)" hint="Rough estimate is fine.">
@@ -192,22 +165,26 @@ export function DailyCheckIn({
             onChange={(sorenessLevel) => patch({ sorenessLevel })}
           />
 
-          <Field
-            label="Cycle phase (optional)"
-            hint="Free text for your own tracking; unlocks smarter insights later."
-          >
-            <input
-              type="text"
-              className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent outline-none"
-              placeholder="e.g. follicular, luteal — or skip"
-              value={draft.cyclePhase ?? ""}
-              onChange={(e) =>
-                patch({
-                  cyclePhase: e.target.value.trim() ? e.target.value.trim() : null,
-                })
-              }
-            />
-          </Field>
+          {showCyclePhaseField ? (
+            <Field
+              label="Cycle phase (optional)"
+              hint="Free text for your own tracking; unlocks smarter insights later."
+            >
+              <input
+                type="text"
+                className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent outline-none"
+                placeholder="e.g. day 5, follicular, luteal — or skip"
+                value={draft.cyclePhase ?? ""}
+                onChange={(e) =>
+                  patch({
+                    // Preserve the user's exact typing (including spaces).
+                    // Only treat completely empty input as unset.
+                    cyclePhase: e.target.value.length === 0 ? null : e.target.value,
+                  })
+                }
+              />
+            </Field>
+          ) : null}
         </div>
       </Card>
 
@@ -241,21 +218,84 @@ export function DailyCheckIn({
           />
 
           <Field
-            label="Water intake (optional)"
-            hint="Any unit you like (oz, ml, etc.) — stay consistent day to day."
+            label={`Water intake (optional, ${waterUnit})`}
+            hint={`Enter in ${waterUnit}. We store hydration in a consistent way for future trends.`}
           >
             <input
               type="number"
               min={0}
               className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink focus:border-accent outline-none"
-              value={draft.waterIntake ?? ""}
-              onChange={(e) =>
+              value={waterDisplayValue}
+              onChange={(e) => {
+                const raw = e.target.value === "" ? null : Number(e.target.value);
                 patch({
-                  waterIntake: e.target.value === "" ? null : Number(e.target.value),
-                })
-              }
+                  // Store standardized hydration in ml internally.
+                  waterIntake:
+                    raw == null ? null : waterUnit === "ml" ? raw : raw * ML_PER_OZ,
+                });
+              }}
             />
           </Field>
+
+          {showWeightField ? (
+            <Field
+              label="Weight (optional)"
+              hint="If enabled, you’ll see simple weight trends (used alongside recovery)."
+            >
+              <input
+                type="number"
+                min={0}
+                step={0.1}
+                className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink focus:border-accent outline-none"
+                value={draft.weightKg ?? ""}
+                onChange={(e) =>
+                  patch({
+                    weightKg: e.target.value === "" ? null : Number(e.target.value),
+                  })
+                }
+              />
+            </Field>
+          ) : null}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="mb-4 font-display text-lg text-ink">Training & activity</h2>
+        <div className="space-y-4">
+          <ToggleRow
+            checked={draft.workoutCompleted}
+            onChange={(workoutCompleted) => patch({ workoutCompleted })}
+            title="Workout completed"
+            subtitle="Tick when you trained — rest days count too when you honour recovery."
+          />
+
+          <Field label="Workout type (optional)" hint="Pick a preset or write your own.">
+            <input
+              type="text"
+              list="workout-presets"
+              className="w-full rounded-2xl border border-accent-muted/80 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent outline-none"
+              placeholder="Strength, run, yoga…"
+              value={draft.workoutType}
+              onChange={(e) => patch({ workoutType: e.target.value })}
+            />
+            <datalist id="workout-presets">
+              {WORKOUT_TYPES.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+          </Field>
+
+          <IntensityPills
+            value={draft.workoutIntensity}
+            onChange={(workoutIntensity) => patch({ workoutIntensity })}
+          />
+
+          <ToggleRow
+            checked={draft.restDay}
+            onChange={(restDay) => patch({ restDay })}
+            title="Rest / recovery day"
+            subtitle="Mark when you’re intentionally off training — helps future recovery insights."
+          />
         </div>
       </Card>
 

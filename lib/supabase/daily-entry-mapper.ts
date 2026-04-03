@@ -16,8 +16,10 @@ export type DailyEntryRow = {
   steps?: number | null;
   mood?: number | null;
   energy?: number | null;
-  water_oz?: number | null;
-  water_intake?: number | null;
+  water_oz?: number | null; // legacy
+  water_intake?: number | null; // legacy unit (assumed oz for backfill)
+  water_intake_ml?: number | null; // standardized
+  weight_kg?: number | null;
   notes?: string | null;
   progress_photo_path?: string | null;
   progress_photo_url?: string | null;
@@ -28,11 +30,16 @@ export type DailyEntryRow = {
   updated_at?: string | null;
 };
 
+const ML_PER_OZ = 29.5735;
+
 export function mapRowToDailyEntry(
   row: DailyEntryRow,
   signedDisplayUrl: string | null,
 ): DailyEntry {
-  const waterFromDb = row.water_intake ?? row.water_oz ?? null;
+  const waterMl =
+    row.water_intake_ml ??
+    (row.water_intake != null ? row.water_intake * ML_PER_OZ : null) ??
+    (row.water_oz != null ? row.water_oz * ML_PER_OZ : null);
   return {
     date: row.date,
     workoutCompleted: row.workout_completed ?? false,
@@ -43,7 +50,8 @@ export function mapRowToDailyEntry(
     steps: row.steps ?? null,
     mood: row.mood ?? null,
     energy: row.energy ?? null,
-    waterIntake: waterFromDb,
+    waterIntake: waterMl ?? null,
+    weightKg: row.weight_kg ?? null,
     notes: row.notes ?? "",
     progressPhotoPath: row.progress_photo_path ?? null,
     progressPhotoUrl: row.progress_photo_url ?? null,
@@ -51,7 +59,10 @@ export function mapRowToDailyEntry(
     stressLevel: row.stress_level ?? null,
     sorenessLevel: row.soreness_level ?? null,
     restDay: row.rest_day ?? false,
-    cyclePhase: row.cycle_phase?.trim() ? row.cycle_phase : null,
+    // Preserve exact saved text (no trimming), so spaces round-trip correctly.
+    // Treat null/undefined/empty-string as unset.
+    cyclePhase:
+      row.cycle_phase == null || row.cycle_phase === "" ? null : row.cycle_phase,
     updatedAt: row.updated_at ?? new Date().toISOString(),
   };
 }
@@ -69,7 +80,10 @@ export function dailyEntryToDbPayload(entry: DailyEntry, userId: string, date: s
     steps: entry.steps,
     mood: entry.mood,
     energy: entry.energy,
-    water_intake: entry.waterIntake,
+    // Store hydration in both standardized ml and backward-compatible oz.
+    water_intake_ml: entry.waterIntake,
+    water_intake:
+      entry.waterIntake != null ? entry.waterIntake / ML_PER_OZ : null,
     notes: entry.notes || "",
     progress_photo_path: entry.progressPhotoPath,
     progress_photo_url: entry.progressPhotoUrl,
@@ -77,6 +91,7 @@ export function dailyEntryToDbPayload(entry: DailyEntry, userId: string, date: s
     soreness_level: entry.sorenessLevel,
     rest_day: entry.restDay,
     cycle_phase: entry.cyclePhase,
+    weight_kg: entry.weightKg,
     updated_at: entry.updatedAt,
   };
 }

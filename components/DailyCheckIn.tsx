@@ -21,7 +21,7 @@ import { useSupabaseUser } from "@/hooks/useSupabaseUser";
 import { useUserProfilePreferences } from "@/hooks/useUserProfilePreferences";
 import { getSupabaseClient } from "@/lib/supabase/browserClient";
 
-const WORKOUT_TYPES = ["Strength", "Run", "Walk", "Yoga", "Sport", "Other"];
+const WORKOUT_TYPES = ["Strength", "Run", "Walk", "Yoga", "Sport", "HIIT", "Other"];
 
 export function DailyCheckIn({
   date,

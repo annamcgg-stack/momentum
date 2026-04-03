@@ -25,7 +25,13 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-8 pb-8">
-      <DailyCheckIn date={date} initial={initial} onSave={(p) => save(date, p)} />
+<DailyCheckIn
+  date={date}
+  initial={initial}
+  onSave={async (entry) => {
+    await save(date, entry);
+  }}
+/>
       <p className="pb-4 text-center text-xs text-ink-faint">
         Progress comes from consistency — see trends on the Progress tab.
       </p>

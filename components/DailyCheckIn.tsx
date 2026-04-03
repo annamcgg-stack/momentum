@@ -30,12 +30,14 @@ export function DailyCheckIn({
 }: {
   date: string;
   initial: DailyEntry;
-  onSave: (patch: Partial<DailyEntry>) => void;
+  onSave: (entry: DailyEntry) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<DailyEntry>(() => initial ?? emptyEntry(date));
   const [showPhoto, setShowPhoto] = useState(false);
   const { user } = useSupabaseUser();
   const userId = user?.id ?? null;
+  const [isAutosaving, setIsAutosaving] = useState(false);
+  const [lastSavedJson, setLastSavedJson] = useState("");
   const { prefs: profilePrefs, ready: profileReady } = useUserProfilePreferences(userId);
   const showCyclePhaseField = profileReady && Boolean(profilePrefs?.cycleTrackingEnabled);
   const showWeightField = profileReady && Boolean(profilePrefs?.weightTrackingEnabled);
@@ -57,9 +59,27 @@ export function DailyCheckIn({
   function patch(p: Partial<DailyEntry>) {
     const next = mergeEntry(draft, p);
     setDraft(next);
-    onSave(p);
   }
-
+  useEffect(() => {
+    if (!draft) return;
+  
+    const serialized = JSON.stringify(draft);
+    if (serialized === lastSavedJson) return;
+  
+    const timeout = setTimeout(async () => {
+      try {
+        setIsAutosaving(true);
+        await onSave(draft);
+        setLastSavedJson(serialized);
+      } catch (error) {
+        console.error("Autosave failed", error);
+      } finally {
+        setIsAutosaving(false);
+      }
+    }, 800);
+  
+    return () => clearTimeout(timeout);
+  }, [draft, onSave, lastSavedJson]);
   async function replaceProgressPhoto(file: File) {
     if (!user) throw new Error("Please log in to upload a progress photo.");
     const supabase = getSupabaseClient();

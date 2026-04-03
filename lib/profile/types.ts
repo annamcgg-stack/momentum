@@ -24,6 +24,6 @@ export const DEFAULT_USER_PROFILE_PREFERENCES: Omit<
   sex: null,
   goalFocus: null,
   weightTrackingEnabled: false,
-  waterUnit: "oz",
+  waterUnit: "ml",
 };
 

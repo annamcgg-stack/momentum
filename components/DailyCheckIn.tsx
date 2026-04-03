@@ -39,7 +39,7 @@ export function DailyCheckIn({
   const { prefs: profilePrefs, ready: profileReady } = useUserProfilePreferences(userId);
   const showCyclePhaseField = profileReady && Boolean(profilePrefs?.cycleTrackingEnabled);
   const showWeightField = profileReady && Boolean(profilePrefs?.weightTrackingEnabled);
-  const waterUnit = profilePrefs?.waterUnit ?? "oz";
+  const waterUnit = profilePrefs?.waterUnit ?? "";
   const ML_PER_OZ = 29.5735;
   const waterDisplayValue =
     draft.waterIntake == null

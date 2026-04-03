@@ -21,7 +21,7 @@ export function mapUserProfilePrefsRow(
     sex: row.sex ?? null,
     goalFocus: row.goal_focus ?? null,
     weightTrackingEnabled: row.weight_tracking_enabled ?? false,
-    waterUnit: (row.water_unit as UserProfilePreferences["waterUnit"]) ?? "oz",
+    waterUnit: (row.water_unit as UserProfilePreferences["waterUnit"]) ?? "ml",
     updatedAt: row.updated_at ?? new Date().toISOString(),
   };
 }

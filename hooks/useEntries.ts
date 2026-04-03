@@ -146,27 +146,26 @@ export function useEntries() {
     })();
   }, [userId]);
 
-  const save = useCallback((date: string, patch: Partial<DailyEntry>) => {
+  const save = useCallback(async (date: string, entry: DailyEntry) => {
     if (!userId) return emptyEntry(date);
     const supabase = getSupabaseClient();
     if (!supabase) return emptyEntry(date);
 
-    const prev = map[date] ?? emptyEntry(date);
-    const next = mergeEntry(prev, patch);
+    const next = entry;
 
     // Persist to DB (RLS ensures users can only write their own rows).
-    (async () => {
       const payload = dailyEntryToDbPayload(next, userId, date);
 
-      await supabase
+      const { error } = await supabase
         .from("daily_entries")
         .upsert(payload, { onConflict: "user_id,date" });
-
+      
+      if (error) throw error;
+      
       setMap((m) => ({ ...m, [date]: next }));
-    })();
-
-    return next;
-  }, [map, userId]);
+      
+      return next;
+  }, [userId]);
 
   const value = useMemo(
     () => ({

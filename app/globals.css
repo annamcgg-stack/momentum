@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Global polish: smooth scrolling, better tap targets on mobile.
+*/
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-canvas text-ink antialiased;
+}
+
+::selection {
+  @apply bg-accent-muted/50 text-ink;
+}

@@ -123,11 +123,11 @@ export default function ProgressPage() {
               ? "Recovery momentum: focus on sleep quality + stress downshifts for the next few days."
               : "Stay the course: your recovery signals look good — keep consistency gentle and steady.";
 
-  const sleepChartValues = series.map((s) => s.sleepHours ?? 0);
+              const sleepChartValues = series.map((s) => Number(s.sleepHours ?? 0));
   const recoveryChartValues = weekKeys.map((k) => {
     const e = map[k];
     const r = e ? computeRecoveryScore(e) : null;
-    return r ?? 0;
+    return Number(r ?? 0);
   });
   const workoutChartValues = weekKeys.map((k) => {
     const e = map[k];

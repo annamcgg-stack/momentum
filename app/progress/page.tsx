@@ -106,9 +106,9 @@ export default function ProgressPage() {
   const hasAnyWeight = weightEnabled && weightValues.some((v) => v != null);
 
   const hydrationAvgDisplay =
-    avgHydrationMl == null
-      ? null
-      Number(toWaterUnit(avgHydrationMl ?? 0)).toFixed(waterUnit === "ml" ? 0 : 1)
+  avgHydrationMl == null
+    ? null
+    : Number(toWaterUnit(avgHydrationMl ?? 0)).toFixed(waterUnit === "ml" ? 0 : 1);
 
   const focusRecommendation =
     hydratedDays <= 2
@@ -156,7 +156,9 @@ export default function ProgressPage() {
           <Card className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Sleep avg</p>
             <p className="mt-2 font-display text-3xl font-semibold text-ink">
-            {sleepAvg == null ? "—" : `${Number(sleepAvg || 0).toFixed(1)}h`}
+            {sleepAvg != null && Number.isFinite(Number(sleepAvg))
+  ? `${Number(sleepAvg).toFixed(1)}h`
+  : "—"}
             </p>
             <p className="text-sm text-ink-muted">sleep hours</p>
           </Card>
@@ -170,10 +172,10 @@ export default function ProgressPage() {
           <Card className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Recovery trend</p>
             <p className="mt-2 font-display text-3xl font-semibold text-ink">
-              {recoveryAvg != null ? `${Math.round(recoveryAvg)}` : "—"}/100
+              {recoveryAvg != null ? `${Math.round(Number(recoveryAvg))}/100` : "—"}
             </p>
             <p className="text-sm text-ink-muted">
-              {recoveryTrend ? `looks ${recoveryTrend}` : "avg of recovery score"}
+             {recoveryTrend ? `Looks ${recoveryTrend}` : "avg of recovery score"}
             </p>
           </Card>
 

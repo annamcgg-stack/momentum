@@ -108,7 +108,7 @@ export default function ProgressPage() {
   const hydrationAvgDisplay =
     avgHydrationMl == null
       ? null
-      : `${toWaterUnit(avgHydrationMl).toFixed(waterUnit === "ml" ? 0 : 1)} ${waterUnit}`;
+      Number(toWaterUnit(avgHydrationMl ?? 0)).toFixed(waterUnit === "ml" ? 0 : 1)
 
   const focusRecommendation =
     hydratedDays <= 2
@@ -156,7 +156,7 @@ export default function ProgressPage() {
           <Card className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Sleep avg</p>
             <p className="mt-2 font-display text-3xl font-semibold text-ink">
-              {sleepAvg != null ? `${sleepAvg.toFixed(1)}h` : "—"}
+            {sleepAvg == null ? "—" : `${Number(sleepAvg || 0).toFixed(1)}h`}
             </p>
             <p className="text-sm text-ink-muted">sleep hours</p>
           </Card>
@@ -180,7 +180,7 @@ export default function ProgressPage() {
           <Card className="p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">Stress avg</p>
             <p className="mt-2 font-display text-3xl font-semibold text-ink">
-              {stressAvg != null ? stressAvg.toFixed(1) : "—"}
+            {stressAvg != null ? Number(stressAvg).toFixed(1) : "—"}
             </p>
             <p className="text-sm text-ink-muted">rated 1–5 (lower is calmer)</p>
           </Card>
@@ -226,7 +226,7 @@ export default function ProgressPage() {
               Recovery / energy trend
             </p>
             <p className="mb-4 text-sm text-ink-muted">
-              Avg energy: {energyAvg != null ? `${energyAvg.toFixed(1)}/5` : "—"}
+            {energyAvg != null ? `${Number(energyAvg).toFixed(1)}/5` : "—"}
             </p>
             <MiniBars
               caption="Recovery score — last 7 days"
@@ -263,7 +263,7 @@ export default function ProgressPage() {
             <Card>
               <p className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-faint">Weight (optional)</p>
               <p className="mb-4 text-sm text-ink-muted">
-                Avg: {weightAvg != null ? `${weightAvg.toFixed(1)} kg` : "—"}
+              {weightAvg != null ? `${Number(weightAvg).toFixed(1)} kg` : "—"}
               </p>
               <MiniBars
                 caption="Weight trend — last 7 days"

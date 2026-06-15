@@ -131,6 +131,50 @@ export interface NetWorthSnapshot {
   totalLiabilities: number;
 }
 
+export type RepaymentFrequency = "weekly" | "fortnightly" | "monthly";
+export type RateType = "fixed" | "variable";
+export type ExtraPaymentFrequency = "weekly" | "fortnightly" | "monthly";
+
+export interface InvestmentHolding {
+  id: string;
+  ticker: string;
+  exchange: string;
+  stockName: string;
+  country: string;
+  currency: string;
+  shares: number;
+  averagePurchasePrice: number;
+  purchaseDate: string;
+  latestPrice: number | null;
+  latestPriceUpdatedAt: string | null;
+  sector: string | null;
+  notes: string;
+}
+
+export interface MortgageAccount {
+  id: string;
+  propertyName: string;
+  propertyValue: number;
+  loanAmount: number;
+  currentBalance: number;
+  interestRate: number;
+  loanTermYears: number;
+  repaymentFrequency: RepaymentFrequency;
+  regularRepaymentAmount: number;
+  loanStartDate: string;
+  rateType: RateType;
+  offsetBalance: number;
+}
+
+export interface MortgageExtraPayment {
+  id: string;
+  mortgageAccountId: string;
+  amount: number;
+  frequency: ExtraPaymentFrequency;
+  startDate: string;
+  endDate: string | null;
+}
+
 export interface Scenario {
   id: string;
   name: string;
@@ -152,8 +196,22 @@ export interface FinanceData {
   liabilities: Liability[];
   netWorthSnapshots: NetWorthSnapshot[];
   scenarios: Scenario[];
+  investmentHoldings: InvestmentHolding[];
+  mortgageAccounts: MortgageAccount[];
+  mortgageExtraPayments: MortgageExtraPayment[];
   emergencyFundBalance: number;
   darkMode: boolean;
+}
+
+export interface HoldingWithQuote extends InvestmentHolding {
+  currentPrice: number;
+  marketValue: number;
+  costBasis: number;
+  unrealisedGainLoss: number;
+  unrealisedGainLossPercent: number;
+  dailyChange: number;
+  dailyChangePercent: number;
+  priceIsStale: boolean;
 }
 
 export interface TaxResult {

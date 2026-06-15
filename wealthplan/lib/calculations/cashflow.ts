@@ -3,7 +3,8 @@ import { getTaxEngine } from "../tax";
 import { getExpenseMonthlyTotal } from "./expenses";
 import { getTotalSinkingFundMonthly } from "./sinking-funds";
 import { calculateHouseDeposit } from "./house-deposit";
-import { getNetWorth } from "./net-worth";
+import { getIntegratedNetWorth } from "./net-worth";
+import { getTotalPortfolioValue } from "./portfolio";
 import { getInvestingAllocation } from "./allocation";
 
 export interface CashflowSummary {
@@ -128,23 +129,38 @@ export function calculateScenarioImpact(
 
 export function getDashboardSummary(data: FinanceData) {
   const cashflow = calculateCashflow(data);
-  const netWorth = getNetWorth(data.assets, data.liabilities);
+  const integrated = getIntegratedNetWorth(data);
   const houseDeposit = calculateHouseDeposit(data.houseDeposit, data.income.stateProvince);
   const annualInvestments = getInvestingAllocation(data.allocationBuckets, cashflow.monthlySurplus);
+  const portfolioValue = getTotalPortfolioValue(data.investmentHoldings);
+  const portfolioCost = data.investmentHoldings.reduce(
+    (s, h) => s + h.shares * h.averagePurchasePrice,
+    0
+  );
   const emergencyCoverage =
     cashflow.monthlyExpenses > 0
       ? data.emergencyFundBalance / cashflow.monthlyExpenses
       : 0;
 
   return {
-    netWorth,
+    netWorth: integrated.netWorth,
     annualIncome: cashflow.netIncome,
+    monthlyTakeHome: cashflow.monthlyNetIncome,
+    monthlyExpenses: cashflow.monthlyExpenses,
+    monthlySurplus: cashflow.monthlySurplus,
     annualExpenses: cashflow.annualExpenses,
     annualSavings: cashflow.annualSurplus,
     annualInvestments,
     savingsRate: cashflow.savingsRate,
     emergencyCoverage,
     houseDepositProgress: houseDeposit.progress,
+    portfolioValue,
+    portfolioGainLoss: portfolioValue - portfolioCost,
+    portfolioGainLossPercent:
+      portfolioCost > 0 ? ((portfolioValue - portfolioCost) / portfolioCost) * 100 : 0,
+    mortgageBalance: integrated.mortgageBalance,
+    mortgagePayoffDate: integrated.mortgagePayoffDate,
     cashflow,
+    integrated,
   };
 }

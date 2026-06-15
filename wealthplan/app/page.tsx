@@ -8,7 +8,7 @@ import { getExpenseBreakdown } from "@/lib/calculations/expenses";
 import { getBucketAllocations } from "@/lib/calculations/allocation";
 import { getNetWorthTrend, getAssetAllocation, ASSET_TYPE_LABELS } from "@/lib/calculations/net-worth";
 import { calculateInvestmentProjection, getScenarioReturns } from "@/lib/calculations/investment-projection";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatCurrency, formatPercent, formatDate } from "@/lib/format";
 import { StatCard, ProgressBar, SectionHeader } from "@/components/ui/StatCard";
 import { Card } from "@/components/ui/Card";
 import {
@@ -53,22 +53,34 @@ export default function DashboardPage() {
         description="Your complete financial overview at a glance."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Net Worth" value={fmt(summary.netWorth)} trend="up" />
-        <StatCard label="Annual Income" value={fmt(summary.annualIncome)} subtext="After tax" />
-        <StatCard label="Annual Expenses" value={fmt(summary.annualExpenses)} />
-        <StatCard label="Annual Savings" value={fmt(summary.annualSavings)} trend="up" />
-        <StatCard label="Annual Investments" value={fmt(summary.annualInvestments)} />
-        <StatCard label="Savings Rate" value={formatPercent(summary.savingsRate)} />
+        <StatCard label="Monthly Take-Home" value={fmt(summary.monthlyTakeHome)} />
+        <StatCard label="Monthly Expenses" value={fmt(summary.monthlyExpenses)} />
+        <StatCard label="Monthly Surplus" value={fmt(summary.monthlySurplus)} trend="up" />
+        <StatCard label="Portfolio Value" value={fmt(summary.portfolioValue)} />
+        <StatCard
+          label="Portfolio Gain/Loss"
+          value={fmt(summary.portfolioGainLoss)}
+          subtext={formatPercent(summary.portfolioGainLossPercent)}
+          trend={summary.portfolioGainLoss >= 0 ? "up" : "down"}
+        />
+        <StatCard label="Mortgage Balance" value={fmt(summary.mortgageBalance)} />
+        <StatCard
+          label="Mortgage Payoff"
+          value={
+            summary.mortgagePayoffDate
+              ? formatDate(summary.mortgagePayoffDate.toISOString())
+              : "—"
+          }
+        />
         <StatCard
           label="Emergency Fund"
           value={`${summary.emergencyCoverage.toFixed(1)} mo`}
-          subtext="Coverage"
         />
         <StatCard
           label="House Deposit"
           value={formatPercent(summary.houseDepositProgress)}
-          subtext="Progress"
         />
       </div>
 

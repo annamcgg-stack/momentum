@@ -1,4 +1,6 @@
-import type { Asset, Liability, NetWorthSnapshot } from "../types";
+import type { Asset, FinanceData, Liability, NetWorthSnapshot } from "../types";
+import { getTotalPortfolioValue } from "./portfolio";
+import { getTotalMortgageBalance, getTotalPropertyValue, getEarliestPayoffDate } from "./mortgage";
 
 export function getTotalAssets(assets: Asset[]): number {
   return assets.reduce((sum, a) => sum + a.value, 0);
@@ -10,6 +12,39 @@ export function getTotalLiabilities(liabilities: Liability[]): number {
 
 export function getNetWorth(assets: Asset[], liabilities: Liability[]): number {
   return getTotalAssets(assets) - getTotalLiabilities(liabilities);
+}
+
+/** Integrated net worth including portfolio holdings and mortgages */
+export function getIntegratedNetWorth(data: FinanceData) {
+  const manualAssets = getTotalAssets(data.assets);
+  const portfolioValue = getTotalPortfolioValue(data.investmentHoldings);
+  const propertyValue = getTotalPropertyValue(data.mortgageAccounts);
+
+  const manualLiabilities = getTotalLiabilities(data.liabilities);
+  const mortgageBalance = getTotalMortgageBalance(data.mortgageAccounts);
+
+  const totalAssets = manualAssets + portfolioValue + propertyValue;
+  const totalLiabilities = manualLiabilities + mortgageBalance;
+  const netWorth = totalAssets - totalLiabilities;
+
+  const extrasByMortgage = new Map<string, typeof data.mortgageExtraPayments>();
+  for (const extra of data.mortgageExtraPayments) {
+    const list = extrasByMortgage.get(extra.mortgageAccountId) ?? [];
+    list.push(extra);
+    extrasByMortgage.set(extra.mortgageAccountId, list);
+  }
+
+  const mortgagePayoffDate = getEarliestPayoffDate(data.mortgageAccounts, extrasByMortgage);
+
+  return {
+    netWorth,
+    totalAssets,
+    totalLiabilities,
+    portfolioValue,
+    mortgageBalance,
+    propertyValue,
+    mortgagePayoffDate,
+  };
 }
 
 export function getAssetAllocation(assets: Asset[]) {

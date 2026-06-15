@@ -123,9 +123,8 @@ export default function SettingsPage() {
       <Card className="p-5">
         <h2 className="text-lg font-semibold text-foreground">About</h2>
         <p className="mt-2 text-sm text-muted">
-          WealthPlan stores all data locally in your browser. No account or server required.
-          Architecture supports future expansion for bank integrations, portfolio tracking,
-          cloud sync, and authentication.
+          WealthPlan stores your data securely in Supabase with row-level security.
+          Each user can only access their own financial data.
         </p>
         <p className="mt-2 text-xs text-muted">Version 1.0 · Data key: wealthplan-data-v1</p>
       </Card>

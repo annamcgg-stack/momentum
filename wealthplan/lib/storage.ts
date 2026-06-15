@@ -2,6 +2,8 @@ import { DEFAULT_FINANCE_DATA, STORAGE_KEY } from "./constants";
 import type { FinanceData, NetWorthSnapshot } from "./types";
 import { generateId } from "./format";
 
+export { STORAGE_KEY };
+
 export function loadFinanceData(): FinanceData {
   if (typeof window === "undefined") return DEFAULT_FINANCE_DATA;
   try {

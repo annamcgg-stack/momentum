@@ -5,6 +5,8 @@
 import type { DailyEntry } from "./types";
 import { formatDateKey } from "./entry-utils";
 
+const ML_PER_OZ = 29.5735;
+
 function daysAgo(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -44,7 +46,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 8200,
     mood: 4,
     energy: 4,
-    waterIntake: 64,
+    waterIntake: 64 * ML_PER_OZ,
+    weightKg: null,
     notes: "Felt strong today.",
     progressPhoto: null,
     progressPhotoPath: null,
@@ -65,7 +68,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 5400,
     mood: 3,
     energy: 3,
-    waterIntake: 48,
+    waterIntake: 48 * ML_PER_OZ,
+    weightKg: null,
     notes: "",
     progressPhoto: null,
     progressPhotoPath: null,
@@ -86,7 +90,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 12000,
     mood: 5,
     energy: 5,
-    waterIntake: 72,
+    waterIntake: 72 * ML_PER_OZ,
+    weightKg: null,
     notes: "Great sleep last night.",
     progressPhoto: SAMPLE_PHOTO,
     progressPhotoPath: null,
@@ -107,7 +112,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 6800,
     mood: 4,
     energy: 3,
-    waterIntake: 56,
+    waterIntake: 56 * ML_PER_OZ,
+    weightKg: null,
     notes: "",
     progressPhoto: null,
     progressPhotoPath: null,
@@ -128,7 +134,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 4100,
     mood: 2,
     energy: 2,
-    waterIntake: 32,
+    waterIntake: 32 * ML_PER_OZ,
+    weightKg: null,
     notes: "Travel day — off routine.",
     progressPhoto: null,
     progressPhotoPath: null,
@@ -149,7 +156,8 @@ export const MOCK_ENTRIES: Record<string, DailyEntry> = {
     steps: 9100,
     mood: 4,
     energy: 4,
-    waterIntake: 64,
+    waterIntake: 64 * ML_PER_OZ,
+    weightKg: null,
     notes: "",
     progressPhoto: null,
     progressPhotoPath: null,

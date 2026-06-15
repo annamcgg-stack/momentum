@@ -10,15 +10,27 @@ const toneStyles: Record<Insight["tone"], string> = {
   gentle: "border-rose-soft bg-rose-soft/50",
 };
 
-export function InsightsPanel({ map }: { map: EntriesMap }) {
+export function InsightsPanel({
+  map,
+  title = "Insights",
+  subtitle = "Simple patterns from your last two weeks — no cloud AI.",
+  hideHeading = false,
+}: {
+  map: EntriesMap;
+  title?: string;
+  subtitle?: string;
+  hideHeading?: boolean;
+}) {
   const insights = generateInsights(map);
 
   return (
     <Card>
-      <h2 className="mb-1 font-display text-lg text-ink">Insights</h2>
-      <p className="mb-4 text-sm text-ink-muted">
-        Simple patterns from your last two weeks — no cloud AI.
-      </p>
+      {!hideHeading ? (
+        <>
+          <h2 className="mb-1 font-display text-lg text-ink">{title}</h2>
+          <p className="mb-4 text-sm text-ink-muted">{subtitle}</p>
+        </>
+      ) : null}
       <ul className="space-y-3">
         {insights.map((ins) => (
           <li

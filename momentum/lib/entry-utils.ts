@@ -33,6 +33,7 @@ export function emptyEntry(date: DateKey): DailyEntry {
     mood: null,
     energy: null,
     waterIntake: null,
+    weightKg: null,
     notes: "",
     progressPhoto: null,
     progressPhotoPath: null,

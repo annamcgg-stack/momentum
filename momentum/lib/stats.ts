@@ -18,6 +18,7 @@ export interface WeekStat {
   sleepHours: number | null;
   mood: number | null;
   steps: number | null;
+  weightKg: number | null;
   completion: number;
   logged: boolean;
 }
@@ -35,6 +36,7 @@ export function weekSeries(map: EntriesMap, end = todayKey()): WeekStat[] {
         sleepHours: null,
         mood: null,
         steps: null,
+        weightKg: null,
         completion: 0,
         logged: false,
       };
@@ -45,6 +47,7 @@ export function weekSeries(map: EntriesMap, end = todayKey()): WeekStat[] {
       sleepHours: e.sleepHours,
       mood: e.mood,
       steps: e.steps,
+      weightKg: e.weightKg,
       completion: completionFraction(e),
       logged: true,
     };
@@ -100,6 +103,15 @@ export function avgSleepThisWeek(map: EntriesMap, end = todayKey()): number | nu
 export function avgMoodThisWeek(map: EntriesMap, end = todayKey()): number | null {
   const keys = lastNDays(end, 7);
   const vals = keys.map((k) => map[k]?.mood).filter((v): v is number => v != null && v >= 1);
+  if (vals.length === 0) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+export function avgStressThisWeek(map: EntriesMap, end = todayKey()): number | null {
+  const keys = lastNDays(end, 7);
+  const vals = keys
+    .map((k) => map[k]?.stressLevel)
+    .filter((v): v is number => v != null && v >= 1);
   if (vals.length === 0) return null;
   return vals.reduce((a, b) => a + b, 0) / vals.length;
 }

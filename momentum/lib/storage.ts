@@ -8,6 +8,7 @@ import { MOCK_ENTRIES } from "./mock-data";
 import { emptyEntry, mergeEntry } from "./entry-utils";
 
 const STORAGE_KEY = "momentum:dailyEntries:v1";
+const ML_PER_OZ = 29.5735;
 
 export type EntriesMap = Record<DateKey, DailyEntry>;
 
@@ -22,11 +23,16 @@ function loadRaw(): EntriesMap {
     const normalized: EntriesMap = {};
     for (const [date, entry] of Object.entries(parsed)) {
       const e = entry as Partial<DailyEntry> & { waterOz?: number | null };
+      const rawWater = e.waterIntake ?? e.waterOz ?? null;
+      // Heuristic: legacy localStorage stored water as oz (values like 48/64).
+      // Now we store standardized water in ml; if it looks like oz, convert.
+      const waterMl =
+        rawWater == null ? null : rawWater > 200 ? rawWater : rawWater * ML_PER_OZ;
       normalized[date] = {
         ...emptyEntry(date),
         ...e,
         date,
-        waterIntake: e.waterIntake ?? e.waterOz ?? null,
+        waterIntake: waterMl,
         progressPhotoUrl: e.progressPhotoUrl ?? null,
         progressPhoto: e.progressPhoto ?? null,
         progressPhotoPath: e.progressPhotoPath ?? null,
@@ -35,6 +41,7 @@ function loadRaw(): EntriesMap {
         stressLevel: e.stressLevel ?? null,
         sorenessLevel: e.sorenessLevel ?? null,
         energy: e.energy ?? null,
+        weightKg: e.weightKg ?? null,
       };
     }
     return normalized;

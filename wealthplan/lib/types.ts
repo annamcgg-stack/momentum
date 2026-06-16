@@ -27,7 +27,25 @@ export type GoalType =
   | "car"
   | "investment_portfolio"
   | "education"
+  | "wedding"
+  | "renovation"
   | "custom";
+
+export type DataVisibility = "private" | "household" | "shared_account_only";
+export type DashboardViewMode = "personal" | "shared" | "combined";
+export type HouseholdRole = "owner" | "admin" | "member";
+export type HouseholdMemberStatus = "invited" | "active" | "removed";
+export type InvitationStatus = "pending" | "accepted" | "declined" | "expired";
+export type SharedAccountType =
+  | "bank"
+  | "savings"
+  | "investment"
+  | "mortgage"
+  | "loan"
+  | "property"
+  | "other";
+export type SharedAccountOwnership = "shared" | "mine" | "partner";
+export type ExpenseSplitType = "50_50" | "percentage" | "custom";
 
 export type AssetType =
   | "cash"
@@ -72,16 +90,27 @@ export interface IncomeSettings {
   usFilingStatus: UsFilingStatus;
 }
 
-export interface FixedExpense {
+export interface ShareableFields {
+  visibility: DataVisibility;
+  householdId: string | null;
+  sharedAccountId: string | null;
+  ownerUserId?: string;
+}
+
+export interface FixedExpense extends ShareableFields {
   id: string;
   name: string;
   category: ExpenseCategory;
   amount: number;
   frequency: ExpenseFrequency;
   active: boolean;
+  splitType: ExpenseSplitType;
+  userContributionAmount: number;
+  partnerContributionAmount: number;
+  userContributionPercent: number;
 }
 
-export interface SinkingFund {
+export interface SinkingFund extends ShareableFields {
   id: string;
   name: string;
   annualTarget: number;
@@ -95,7 +124,7 @@ export interface AllocationBucket {
   isDefault: boolean;
 }
 
-export interface FinancialGoal {
+export interface FinancialGoal extends ShareableFields {
   id: string;
   name: string;
   type: GoalType;
@@ -103,6 +132,8 @@ export interface FinancialGoal {
   currentAmount: number;
   monthlyContribution: number;
   targetDate: string;
+  userContributionAmount: number;
+  partnerContributionAmount: number;
 }
 
 export interface HouseDepositPlan {
@@ -120,14 +151,14 @@ export interface InvestmentProjectionSettings {
   timeHorizonYears: number;
 }
 
-export interface Asset {
+export interface Asset extends ShareableFields {
   id: string;
   name: string;
   type: AssetType;
   value: number;
 }
 
-export interface Liability {
+export interface Liability extends ShareableFields {
   id: string;
   name: string;
   type: LiabilityType;
@@ -146,7 +177,7 @@ export type RepaymentFrequency = "weekly" | "fortnightly" | "monthly";
 export type RateType = "fixed" | "variable";
 export type ExtraPaymentFrequency = "weekly" | "fortnightly" | "monthly";
 
-export interface InvestmentHolding {
+export interface InvestmentHolding extends ShareableFields {
   id: string;
   ticker: string;
   exchange: string;
@@ -160,9 +191,12 @@ export interface InvestmentHolding {
   latestPriceUpdatedAt: string | null;
   sector: string | null;
   notes: string;
+  ownershipPercent: number;
+  userContributionAmount: number;
+  partnerContributionAmount: number;
 }
 
-export interface MortgageAccount {
+export interface MortgageAccount extends ShareableFields {
   id: string;
   propertyName: string;
   propertyValue: number;
@@ -175,6 +209,9 @@ export interface MortgageAccount {
   loanStartDate: string;
   rateType: RateType;
   offsetBalance: number;
+  ownershipSplitPercent: number;
+  userRepaymentContribution: number;
+  partnerRepaymentContribution: number;
 }
 
 export interface MortgageExtraPayment {
@@ -184,6 +221,7 @@ export interface MortgageExtraPayment {
   frequency: ExtraPaymentFrequency;
   startDate: string;
   endDate: string | null;
+  paidByUserId: string | null;
 }
 
 export interface Scenario {
@@ -212,6 +250,80 @@ export interface FinanceData {
   mortgageExtraPayments: MortgageExtraPayment[];
   emergencyFundBalance: number;
   darkMode: boolean;
+  onboardingCompleted: boolean;
+  dashboardView: DashboardViewMode;
+}
+
+export interface Household {
+  id: string;
+  name: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HouseholdMember {
+  id: string;
+  householdId: string;
+  userId: string;
+  email: string | null;
+  role: HouseholdRole;
+  status: HouseholdMemberStatus;
+  createdAt: string;
+}
+
+export interface SharedAccount {
+  id: string;
+  householdId: string;
+  name: string;
+  type: SharedAccountType;
+  balance: number;
+  currency: string;
+  ownershipType: SharedAccountOwnership;
+}
+
+export interface HouseholdInvitation {
+  id: string;
+  householdId: string;
+  invitedEmail: string;
+  invitedBy: string;
+  status: InvitationStatus;
+  token: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export type HouseholdActivityEvent =
+  | "member_invited"
+  | "member_joined"
+  | "member_removed"
+  | "member_left"
+  | "household_deleted"
+  | "shared_account_created"
+  | "shared_account_unlinked"
+  | "ownership_transferred";
+
+export interface HouseholdActivityLog {
+  id: string;
+  householdId: string;
+  actorUserId: string;
+  eventType: HouseholdActivityEvent;
+  targetUserId: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface PartnerSharedData {
+  userId: string;
+  email: string | null;
+  expenses: FixedExpense[];
+  goals: FinancialGoal[];
+  investmentHoldings: InvestmentHolding[];
+  mortgageAccounts: MortgageAccount[];
+  mortgageExtraPayments: MortgageExtraPayment[];
+  assets: Asset[];
+  liabilities: Liability[];
+  sinkingFunds: SinkingFund[];
 }
 
 export interface HoldingWithQuote extends InvestmentHolding {

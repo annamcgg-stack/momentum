@@ -6,6 +6,7 @@ import type {
   GoalType,
   ScenarioType,
 } from "./types";
+import { DEFAULT_SHAREABLE } from "./household/defaults";
 
 export const STORAGE_KEY = "wealthplan-data-v1";
 
@@ -31,6 +32,8 @@ export const GOAL_TYPES: { value: GoalType; label: string }[] = [
   { value: "car", label: "Car" },
   { value: "investment_portfolio", label: "Investment Portfolio" },
   { value: "education", label: "Education" },
+  { value: "wedding", label: "Wedding" },
+  { value: "renovation", label: "Renovation" },
   { value: "custom", label: "Custom" },
 ];
 
@@ -183,17 +186,17 @@ export const DEFAULT_FINANCE_DATA: FinanceData = {
     usFilingStatus: "single",
   },
   expenses: [
-    { id: "exp-rent", name: "Rent", category: "rent_mortgage", amount: 2200, frequency: "monthly", active: true },
-    { id: "exp-util", name: "Utilities", category: "utilities", amount: 180, frequency: "monthly", active: true },
-    { id: "exp-internet", name: "Internet", category: "internet", amount: 80, frequency: "monthly", active: true },
-    { id: "exp-phone", name: "Mobile Phone", category: "phone", amount: 55, frequency: "monthly", active: true },
-    { id: "exp-insurance", name: "Car Insurance", category: "insurance", amount: 1200, frequency: "annually", active: true },
-    { id: "exp-sub", name: "Subscriptions", category: "subscriptions", amount: 45, frequency: "monthly", active: true },
+    { id: "exp-rent", name: "Rent", category: "rent_mortgage", amount: 2200, frequency: "monthly", active: true, splitType: "50_50", userContributionAmount: 1100, partnerContributionAmount: 1100, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
+    { id: "exp-util", name: "Utilities", category: "utilities", amount: 180, frequency: "monthly", active: true, splitType: "50_50", userContributionAmount: 90, partnerContributionAmount: 90, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
+    { id: "exp-internet", name: "Internet", category: "internet", amount: 80, frequency: "monthly", active: true, splitType: "50_50", userContributionAmount: 40, partnerContributionAmount: 40, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
+    { id: "exp-phone", name: "Mobile Phone", category: "phone", amount: 55, frequency: "monthly", active: true, splitType: "50_50", userContributionAmount: 27.5, partnerContributionAmount: 27.5, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
+    { id: "exp-insurance", name: "Car Insurance", category: "insurance", amount: 1200, frequency: "annually", active: true, splitType: "50_50", userContributionAmount: 600, partnerContributionAmount: 600, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
+    { id: "exp-sub", name: "Subscriptions", category: "subscriptions", amount: 45, frequency: "monthly", active: true, splitType: "50_50", userContributionAmount: 22.5, partnerContributionAmount: 22.5, userContributionPercent: 50, ...DEFAULT_SHAREABLE },
   ],
   sinkingFunds: [
-    { id: "sf-rego", name: "Car Registration", annualTarget: 800, currentBalance: 400 },
-    { id: "sf-xmas", name: "Christmas", annualTarget: 1500, currentBalance: 600 },
-    { id: "sf-travel", name: "Travel", annualTarget: 3000, currentBalance: 1200 },
+    { id: "sf-rego", name: "Car Registration", annualTarget: 800, currentBalance: 400, ...DEFAULT_SHAREABLE },
+    { id: "sf-xmas", name: "Christmas", annualTarget: 1500, currentBalance: 600, ...DEFAULT_SHAREABLE },
+    { id: "sf-travel", name: "Travel", annualTarget: 3000, currentBalance: 1200, ...DEFAULT_SHAREABLE },
   ],
   allocationBuckets: DEFAULT_ALLOCATION_BUCKETS,
   goals: [
@@ -205,6 +208,9 @@ export const DEFAULT_FINANCE_DATA: FinanceData = {
       currentAmount: 15000,
       monthlyContribution: 800,
       targetDate: "2027-06-01",
+      userContributionAmount: 15000,
+      partnerContributionAmount: 0,
+      ...DEFAULT_SHAREABLE,
     },
     {
       id: "goal-hol",
@@ -214,6 +220,9 @@ export const DEFAULT_FINANCE_DATA: FinanceData = {
       currentAmount: 2500,
       monthlyContribution: 400,
       targetDate: "2026-12-01",
+      userContributionAmount: 2500,
+      partnerContributionAmount: 0,
+      ...DEFAULT_SHAREABLE,
     },
   ],
   houseDeposit: {
@@ -230,13 +239,13 @@ export const DEFAULT_FINANCE_DATA: FinanceData = {
     timeHorizonYears: 20,
   },
   assets: [
-    { id: "cash-1", name: "Everyday Account", type: "cash", value: 5000 },
-    { id: "savings-1", name: "High Interest Savings", type: "savings", value: 15000 },
-    { id: "shares-1", name: "ETF Portfolio", type: "shares_etfs", value: 25000 },
-    { id: "super-1", name: "Superannuation", type: "superannuation", value: 85000 },
+    { id: "cash-1", name: "Everyday Account", type: "cash", value: 5000, ...DEFAULT_SHAREABLE },
+    { id: "savings-1", name: "High Interest Savings", type: "savings", value: 15000, ...DEFAULT_SHAREABLE },
+    { id: "shares-1", name: "ETF Portfolio", type: "shares_etfs", value: 25000, ...DEFAULT_SHAREABLE },
+    { id: "super-1", name: "Superannuation", type: "superannuation", value: 85000, ...DEFAULT_SHAREABLE },
   ],
   liabilities: [
-    { id: "hecs-1", name: "HECS/HELP", type: "hecs_help", value: 12000 },
+    { id: "hecs-1", name: "HECS/HELP", type: "hecs_help", value: 12000, ...DEFAULT_SHAREABLE },
   ],
   netWorthSnapshots: [],
   scenarios: [],
@@ -245,6 +254,8 @@ export const DEFAULT_FINANCE_DATA: FinanceData = {
   mortgageExtraPayments: [],
   emergencyFundBalance: 15000,
   darkMode: false,
+  onboardingCompleted: false,
+  dashboardView: "personal",
 };
 
 export const NAV_ITEMS = [
@@ -262,5 +273,6 @@ export const NAV_ITEMS = [
   { href: "/mortgage", label: "Mortgage", icon: "Building2" },
   { href: "/net-worth", label: "Net Worth", icon: "Landmark" },
   { href: "/scenarios", label: "Scenarios", icon: "FlaskConical" },
+  { href: "/household", label: "Household", icon: "Users" },
   { href: "/settings", label: "Data", icon: "Database" },
 ] as const;

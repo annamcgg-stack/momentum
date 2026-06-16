@@ -59,15 +59,29 @@ export async function loadFinanceDataFromSupabase(
   const profile = profileRes.data;
   const income = incomeRes.data;
 
+  const taxOptions = (income?.tax_options ?? {}) as Record<string, unknown>;
+
   const incomeSettings: IncomeSettings = income
     ? {
+        ...DEFAULT_FINANCE_DATA.income,
         salary: Number(income.salary),
         payFrequency: income.pay_frequency as IncomeSettings["payFrequency"],
         country: income.country as IncomeSettings["country"],
         stateProvince: income.state_province,
+        taxYear: String(taxOptions.taxYear ?? DEFAULT_FINANCE_DATA.income.taxYear),
         includeMedicareLevy: income.include_medicare_levy,
         salarySacrifice: Number(income.salary_sacrifice),
         superContribution: Number(income.super_contribution),
+        includeAccLevy: Boolean(taxOptions.includeAccLevy ?? DEFAULT_FINANCE_DATA.income.includeAccLevy),
+        residencyStatus: (taxOptions.residencyStatus as IncomeSettings["residencyStatus"]) ?? "resident",
+        includeCpp: Boolean(taxOptions.includeCpp ?? DEFAULT_FINANCE_DATA.income.includeCpp),
+        includeEi: Boolean(taxOptions.includeEi ?? DEFAULT_FINANCE_DATA.income.includeEi),
+        ukRegion: (taxOptions.ukRegion as IncomeSettings["ukRegion"]) ?? "ENG",
+        includeNationalInsurance: Boolean(
+          taxOptions.includeNationalInsurance ?? DEFAULT_FINANCE_DATA.income.includeNationalInsurance
+        ),
+        usFilingStatus:
+          (taxOptions.usFilingStatus as IncomeSettings["usFilingStatus"]) ?? "single",
       }
     : DEFAULT_FINANCE_DATA.income;
 
@@ -257,6 +271,16 @@ export async function saveFinanceDataToSupabase(
       include_medicare_levy: data.income.includeMedicareLevy,
       salary_sacrifice: data.income.salarySacrifice,
       super_contribution: data.income.superContribution,
+      tax_options: {
+        taxYear: data.income.taxYear,
+        includeAccLevy: data.income.includeAccLevy,
+        residencyStatus: data.income.residencyStatus,
+        includeCpp: data.income.includeCpp,
+        includeEi: data.income.includeEi,
+        ukRegion: data.income.ukRegion,
+        includeNationalInsurance: data.income.includeNationalInsurance,
+        usFilingStatus: data.income.usFilingStatus,
+      },
       updated_at: ts,
     },
     { onConflict: "user_id" }

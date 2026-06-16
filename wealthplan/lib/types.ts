@@ -1,7 +1,10 @@
 export type PayFrequency = "annual" | "monthly" | "fortnightly" | "weekly";
 export type ExpenseFrequency = "weekly" | "fortnightly" | "monthly" | "quarterly" | "annually";
 
-export type CountryCode = "AU" | "NZ" | "GB" | "US";
+export type CountryCode = "AU" | "NZ" | "SG" | "CA" | "GB" | "US";
+export type ResidencyStatus = "resident" | "non_resident";
+export type UsFilingStatus = "single" | "married_joint" | "married_separate" | "head_of_household";
+export type UkRegion = "ENG" | "SCT" | "WLS";
 
 export type ExpenseCategory =
   | "rent_mortgage"
@@ -56,9 +59,17 @@ export interface IncomeSettings {
   payFrequency: PayFrequency;
   country: CountryCode;
   stateProvince: string;
+  taxYear: string;
   includeMedicareLevy: boolean;
   salarySacrifice: number;
   superContribution: number;
+  includeAccLevy: boolean;
+  residencyStatus: ResidencyStatus;
+  includeCpp: boolean;
+  includeEi: boolean;
+  ukRegion: UkRegion;
+  includeNationalInsurance: boolean;
+  usFilingStatus: UsFilingStatus;
 }
 
 export interface FixedExpense {
@@ -217,11 +228,18 @@ export interface HoldingWithQuote extends InvestmentHolding {
 export interface TaxResult {
   grossIncome: number;
   taxableIncome: number;
+  incomeTax: number;
+  deductions: number;
+  totalTaxDeductions: number;
   taxPayable: number;
   medicareLevy: number;
+  stateTax: number;
   netIncome: number;
   monthlyTakeHome: number;
   fortnightlyTakeHome: number;
   weeklyTakeHome: number;
   effectiveTaxRate: number;
+  marginalTaxRate: number;
+  warnings: string[];
+  estimateDisclaimer: string;
 }
